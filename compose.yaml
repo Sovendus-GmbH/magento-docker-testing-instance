@@ -20,7 +20,7 @@ services:
       - ~/.composer:/var/www/.composer:cached
       - ~/.ssh/id_rsa:/var/www/.ssh/id_rsa:cached
       - ~/.ssh/known_hosts:/var/www/.ssh/known_hosts:cached
-      - ../testing-docker-magento-html:/var/www/html
+      - appdata:/var/www/html
       - ../magento-plugin/SovendusApp:/var/www/html/app/code/Sovendus/SovendusApp
       - sockdata:/sock
       - ssldata:/etc/nginx/certs
