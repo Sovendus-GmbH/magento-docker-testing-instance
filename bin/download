@@ -7,10 +7,9 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-if [ -d "./src" ]; then
-  echo "Error: The \"src\" directory is not empty. Please remove all contents within this directory and try again."
-  exit 1
-fi
+# Clean the src directory inside the container
+echo "Making sure the src directory is clean..."
+bin/clinotty rm -rf /var/www/html/* /var/www/html/.[!.]* /var/www/html/..?* 2>/dev/null || true
 
 bin/stop
 
@@ -23,14 +22,21 @@ bin/fixowns
 
 if [ "$EDITION" == "mageos" ]; then
   VERSION=${2:-1.0.5}
-  bin/clinotty composer create-project --repository-url=https://repo.mage-os.org/ mage-os/project-community-edition="${VERSION}" .
+  bin/clinotty composer create-project --repository-url=https://repo.mage-os.org/ mage-os/project-community-edition="${VERSION}" /tmp/magento
+  bin/clinotty rsync -a /tmp/magento/ /var/www/html/
+  bin/clinotty rm -rf /tmp/magento
 else
   VERSION=${2:-2.4.7-p3}
-  bin/clinotty composer create-project --repository=https://repo.magento.com/ magento/project-"${EDITION}"-edition="${VERSION}" .
+  bin/clinotty composer create-project --no-progress --no-interaction --repository=https://repo.magento.com/ magento/project-"${EDITION}"-edition="${VERSION}" /tmp/magento
+  bin/clinotty rsync -a /tmp/magento/ /var/www/html/
+  bin/clinotty rm -rf /tmp/magento
+  bin/clinotty composer install --no-progress --no-interaction
 fi
 
 if [ $? != 0 ]; then
     echo -e "${BLUE}Please check the installation guide at ${YELLOW}https://github.com/markshust/docker-magento#install-fails-because-project-directory-is-not-empty${BLUE} for troubleshooting.${NC}"
 else
-    bin/clinotty [ ! -f "./var/composer_home/auth.json" ] && bin/clinotty mkdir -p ./var/composer_home && bin/clinotty cp /var/www/.composer/auth.json ./var/composer_home/auth.json
+    bin/clinotty mkdir -p ./var/composer_home
+    bin/clinotty cp -f /var/www/.composer/auth.json ./var/composer_home/auth.json 2>/dev/null || true
+    bin/fixowns
 fi
