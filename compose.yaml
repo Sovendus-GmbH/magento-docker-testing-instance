@@ -24,6 +24,7 @@ services:
       - ../../SovendusApp:/var/www/html/app/code/Sovendus/SovendusApp
       - sockdata:/sock
       - ssldata:/etc/nginx/certs
+      - ../logs:/var/www/html/var/log
     #extra_hosts: &appextrahosts
       ## Selenium support, replace "magento.test" with URL of your site
       #- "magento.test:172.17.0.1"
